@@ -49,3 +49,8 @@ def create_checkout_session(request: HttpRequest, id: int) -> JsonResponse:
         return JsonResponse({"sessionId": checkout_session.id})
     except Exception as e:
         return JsonResponse({"error": str(e)}, status=400)
+
+
+def success(request: HttpRequest) -> HttpResponse:
+    """Отображает страницу успешной оплаты."""
+    return render(request, "payments/success.html")

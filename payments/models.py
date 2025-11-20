@@ -12,6 +12,10 @@ class Item(models.Model):
         """Строковое представление товара."""
         return f"{self.name} - ${self.price / 100:.2f}"
 
+    def get_display_price(self) -> str:
+        """Возвращает цену в долларах для отображения."""
+        return f"{self.price / 100:.2f}"
+
     class Meta:
         verbose_name = "Товар"
         verbose_name_plural = "Товары"
