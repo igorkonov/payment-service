@@ -38,7 +38,14 @@ class TaxAdmin(admin.ModelAdmin):
 class OrderAdmin(admin.ModelAdmin):
     """Админ-панель для управления заказами."""
 
-    list_display = ("id", "created_at", "get_items_count", "total_price_display", "discount", "tax")
+    list_display = (
+        "id",
+        "created_at",
+        "get_items_count",
+        "total_price_display",
+        "discount",
+        "tax",
+    )
     list_filter = ("created_at", "discount", "tax")
     filter_horizontal = ("items",)
     readonly_fields = ("created_at",)

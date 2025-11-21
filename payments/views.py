@@ -54,7 +54,9 @@ def create_checkout_session(request: HttpRequest, id: int) -> JsonResponse:
             ],
             mode="payment",
             success_url=request.build_absolute_uri("/success/"),
-            cancel_url=request.build_absolute_uri(f"/item/{id}/"),
+            cancel_url=request.build_absolute_uri(
+                f"/item/{id}/"
+            ),
         )
         return JsonResponse({"sessionId": checkout_session.id})
     except Exception as e:
@@ -62,7 +64,9 @@ def create_checkout_session(request: HttpRequest, id: int) -> JsonResponse:
 
 
 @csrf_exempt
-def create_order_checkout_session(request: HttpRequest, id: int) -> JsonResponse:
+def create_order_checkout_session(
+    request: HttpRequest, id: int
+) -> JsonResponse:
     """Создает Stripe checkout сессию для покупки заказа."""
     order = get_object_or_404(Order, pk=id)
 
@@ -93,11 +97,10 @@ def create_order_checkout_session(request: HttpRequest, id: int) -> JsonResponse
 
         # Добавляем скидку если есть
         if order.discount:
-            session_params["discounts"] = [
-                {
-                    "coupon": create_stripe_coupon(order.discount.name, order.discount.percent)
-                }
-            ]
+            coupon_id = create_stripe_coupon(
+                order.discount.name, order.discount.percent
+            )
+            session_params["discounts"] = [{"coupon": coupon_id}]
 
         checkout_session = stripe.checkout.Session.create(**session_params)
         return JsonResponse({"sessionId": checkout_session.id})
