@@ -5,6 +5,8 @@ from . import views
 app_name = "payments"
 
 urlpatterns = [
+    # Главная страница
+    path("", views.index, name="index"),
     # Checkout Session URLs (старый подход)
     path("item/<int:id>/", views.item_detail, name="item_detail"),
     path(

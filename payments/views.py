@@ -11,6 +11,17 @@ from .models import Item, Order
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
+def index(request: HttpRequest) -> HttpResponse:
+    """Отображает главную страницу со списком товаров и заказов."""
+    items = Item.objects.all()
+    orders = Order.objects.all()
+    context: dict[str, Any] = {
+        "items": items,
+        "orders": orders,
+    }
+    return render(request, "payments/index.html", context)
+
+
 def item_detail(request: HttpRequest, id: int) -> HttpResponse:
     """Отображает страницу с деталями товара и кнопкой покупки."""
     item = get_object_or_404(Item, pk=id)

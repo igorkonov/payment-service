@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Service - Главная</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f6f9fc;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 30px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #32325d;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            color: #525f7f;
+            font-size: 18px;
+        }
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .item-card {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .item-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .item-card h3 {
+            color: #32325d;
+            margin: 0 0 10px 0;
+        }
+        .item-card p {
+            color: #525f7f;
+            margin: 8px 0;
+        }
+        .price {
+            font-size: 24px;
+            font-weight: bold;
+            color: #5469d4;
+            margin: 15px 0;
+        }
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            text-align: center;
+            transition: background-color 0.2s;
+        }
+        .btn-primary {
+            background-color: #5469d4;
+            color: white;
+        }
+        .btn-primary:hover {
+            background-color: #4053b8;
+        }
+        .btn-secondary {
+            background-color: #6772e5;
+            color: white;
+        }
+        .btn-secondary:hover {
+            background-color: #5469d4;
+        }
+        .method-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #8898aa;
+            margin-bottom: 5px;
+        }
+        .orders-section {
+            margin-top: 50px;
+        }
+        .section-title {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .section-title h2 {
+            color: #32325d;
+            margin: 0;
+        }
+        .admin-link {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+        }
+        .admin-link a {
+            color: #5469d4;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .admin-link a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛍️ Payment Service</h1>
+        <p class="subtitle">Демонстрация интеграции с Stripe API</p>
+    </div>
+
+    <div class="section-title">
+        <h2>Товары</h2>
+    </div>
+
+    <div class="items-grid">
+        {% for item in items %}
+        <div class="item-card">
+            <h3>{{ item.name }}</h3>
+            <p>{{ item.description }}</p>
+            <div class="price">{{ item.get_display_price }}</div>
+
+            <div class="buttons">
+                <div style="flex: 1;">
+                    <div class="method-label">Checkout Session</div>
+                    <a href="{% url 'payments:item_detail' item.id %}" class="btn btn-primary">
+                        Купить
+                    </a>
+                </div>
+                <div style="flex: 1;">
+                    <div class="method-label">Payment Intent</div>
+                    <a href="{% url 'payments:item_payment_intent' item.id %}" class="btn btn-secondary">
+                        Купить
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <p>Товары не найдены. Добавьте товары через <a href="/admin/">админ-панель</a>.</p>
+        {% endfor %}
+    </div>
+
+    {% if orders %}
+    <div class="orders-section">
+        <div class="section-title">
+            <h2>Заказы</h2>
+        </div>
+
+        <div class="items-grid">
+            {% for order in orders %}
+            <div class="item-card">
+                <h3>Заказ #{{ order.id }}</h3>
+                <p>Товаров: {{ order.items.count }}</p>
+                <p>Создан: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+                {% if order.discount %}
+                <p>Скидка: {{ order.discount.name }} ({{ order.discount.percent }}%)</p>
+                {% endif %}
+                {% if order.tax %}
+                <p>Налог: {{ order.tax.name }} ({{ order.tax.percent }}%)</p>
+                {% endif %}
+                <div class="price">{{ order.get_display_total }}</div>
+
+                <div class="buttons">
+                    <div style="flex: 1;">
+                        <div class="method-label">Checkout Session</div>
+                        <a href="{% url 'payments:order_detail' order.id %}" class="btn btn-primary">
+                            Оплатить
+                        </a>
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="method-label">Payment Intent</div>
+                        <a href="{% url 'payments:order_payment_intent' order.id %}" class="btn btn-secondary">
+                            Оплатить
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="admin-link">
+        <a href="/admin/">→ Перейти в админ-панель</a>
+    </div>
+</body>
+</html>
