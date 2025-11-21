@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Заказ #{{ order.id }}</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .order-items {
+            margin: 20px 0;
+        }
+        .item {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .total {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        button {
+            background-color: #5469d4;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #4053b8;
+        }
+    </style>
+</head>
+<body>
+    <h1>Заказ #{{ order.id }}</h1>
+    <p>Дата создания: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+
+    <div class="order-items">
+        <h2>Товары:</h2>
+        {% for item in order.items.all %}
+        <div class="item">
+            <h3>{{ item.name }}</h3>
+            <p>{{ item.description }}</p>
+            <p>Цена: {{ item.get_display_price }}</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if order.discount %}
+    <p>Скидка: {{ order.discount.name }} ({{ order.discount.percent }}%)</p>
+    {% endif %}
+
+    {% if order.tax %}
+    <p>Налог: {{ order.tax.name }} ({{ order.tax.percent }}%)</p>
+    {% endif %}
+
+    <div class="total">
+        Итого:
+        {% if order.get_currency == 'usd' %}${% else %}€{% endif %}{{ order.get_total_price|floatformat:2 }}
+    </div>
+
+    <button id="buy-button">Оплатить заказ</button>
+
+    <script type="text/javascript">
+        var stripe = Stripe('{{ stripe_public_key }}');
+        var buyButton = document.getElementById('buy-button');
+
+        buyButton.addEventListener('click', function() {
+            fetch('/buy-order/{{ order.id }}/', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(session => {
+                return stripe.redirectToCheckout({ sessionId: session.sessionId });
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+</body>
+</html>
