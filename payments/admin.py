@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Discount, Item, Order, Tax
+from .models import Discount, Item, Order, OrderItem, Tax
 
 
 @admin.register(Item)
@@ -22,16 +22,24 @@ class ItemAdmin(admin.ModelAdmin):
 class DiscountAdmin(admin.ModelAdmin):
     """Админ-панель для управления скидками."""
 
-    list_display = ("name", "percent")
-    search_fields = ("name",)
+    list_display = ("percent",)
+    search_fields = ("percent",)
 
 
 @admin.register(Tax)
 class TaxAdmin(admin.ModelAdmin):
     """Админ-панель для управления налогами."""
 
-    list_display = ("name", "percent")
-    search_fields = ("name",)
+    list_display = ("percent",)
+    search_fields = ("percent",)
+
+
+class OrderItemInline(admin.TabularInline):
+    """Inline для управления товарами в заказе."""
+
+    model = OrderItem
+    extra = 1
+    fields = ("item", "quantity")
 
 
 @admin.register(Order)
@@ -47,12 +55,12 @@ class OrderAdmin(admin.ModelAdmin):
         "tax",
     )
     list_filter = ("created_at", "discount", "tax")
-    filter_horizontal = ("items",)
+    inlines = [OrderItemInline]
     readonly_fields = ("created_at",)
 
     def get_items_count(self, obj: Order) -> int:
         """Возвращает количество товаров в заказе."""
-        return obj.items.count()
+        return sum(oi.quantity for oi in obj.order_items.all())
 
     get_items_count.short_description = "Товаров"
 

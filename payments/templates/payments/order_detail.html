@@ -1,71 +1,12 @@
+{% load static %}
+{% load payment_filters %}
 <!DOCTYPE html>
 <html>
 <head>
     <title>Заказ #{{ order.id }}</title>
     <script src="https://js.stripe.com/v3/"></script>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            max-width: 800px;
-            margin: 50px auto;
-            padding: 20px;
-        }
-        h1 {
-            color: #32325d;
-        }
-        .order-items {
-            margin: 20px 0;
-        }
-        .item {
-            border: 1px solid #e6ebf1;
-            padding: 15px;
-            margin: 10px 0;
-            border-radius: 4px;
-            background-color: #fafbfc;
-        }
-        .item h3 {
-            margin: 0 0 8px 0;
-            color: #32325d;
-        }
-        .item p {
-            margin: 5px 0;
-            color: #525f7f;
-        }
-        .total {
-            font-size: 1.2em;
-            font-weight: bold;
-            margin: 20px 0;
-            color: #32325d;
-        }
-        #card-element {
-            border: 1px solid #e6ebf1;
-            border-radius: 4px;
-            padding: 12px;
-            margin: 20px 0;
-        }
-        #card-errors {
-            color: #fa755a;
-            margin: 10px 0;
-        }
-        #buy-button {
-            background-color: #5469d4;
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            width: 100%;
-        }
-        #buy-button:hover {
-            background-color: #4053b8;
-        }
-        #buy-button:disabled {
-            background-color: #aab7c4;
-            cursor: not-allowed;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'payments/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'payments/css/payment.css' %}">
 </head>
 <body>
     <h1>Заказ #{{ order.id }}</h1>
@@ -73,26 +14,52 @@
 
     <div class="order-items">
         <h2>Товары:</h2>
-        {% for item in order.items.all %}
+        {% for order_item in order.order_items.all %}
         <div class="item">
-            <h3>{{ item.name }}</h3>
-            <p>{{ item.description }}</p>
-            <p>Цена: {{ item.get_display_price }}</p>
+            <h3>{{ order_item.item.name }} × {{ order_item.quantity }}</h3>
+            <p>{{ order_item.item.description }}</p>
+            <p>Оригинальная цена: {{ order_item.item.get_display_price }}</p>
+            {% if order_item.item.currency != order.payment_currency %}
+            <p style="color: #8898aa; font-size: 14px;">
+                (конвертировано в {% if order.payment_currency == 'usd' %}USD{% else %}EUR{% endif %})
+            </p>
+            {% endif %}
         </div>
         {% endfor %}
     </div>
 
-    {% if order.discount %}
-    <p>Скидка: {{ order.discount.name }} ({{ order.discount.percent }}%)</p>
-    {% endif %}
+    <div class="pricing-details">
+        <div style="margin-bottom: 15px;">
+            <strong>Валюта оплаты:</strong>
+            {% if order.payment_currency == 'usd' %}💵 USD{% else %}💶 EUR{% endif %}
+        </div>
 
-    {% if order.tax %}
-    <p>Налог: {{ order.tax.name }} ({{ order.tax.percent }}%)</p>
-    {% endif %}
+        <div class="breakdown">
+            <div class="breakdown-row">
+                <span>Сумма товаров:</span>
+                <span>{{ order.get_display_subtotal }}</span>
+            </div>
 
-    <div class="total">
-        Итого: {{ order.get_display_total }}
-    </div>
+            {% if order.discount %}
+            <div class="breakdown-row discount">
+                <span>� Скидк/а ({{ order.discount.percent }}%):</span>
+                <span>-{{ order.get_display_discount }}</span>
+            </div>
+            {% endif %}
+
+            {% if order.tax %}
+            <div class="breakdown-row tax">
+                <span>📋 Налог ({{ order.tax.percent }}%):</span>
+                <span>+{{ order.get_display_tax }}</span>
+            </div>
+            {% endif %}
+
+            <div class="breakdown-row total">
+                <strong>Итого к оплате:</strong>
+                <strong>{{ order.get_display_total }}</strong>
+            </div>
+        </div>
+
 
     <form id="payment-form">
         <div id="card-element"></div>

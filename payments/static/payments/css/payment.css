@@ -1,0 +1,133 @@
+/* Стили для страниц оплаты */
+.container {
+    max-width: 800px;
+}
+
+#card-element {
+    border: 1px solid #e6ebf1;
+    border-radius: 10px;
+    padding: 14px;
+    margin: 20px 0;
+    transition: all 0.3s ease;
+}
+
+#card-element:focus-within {
+    border-color: #5469d4;
+    box-shadow: 0 0 0 3px rgba(84, 105, 212, 0.1);
+}
+
+#card-errors {
+    color: #fa755a;
+    margin: 10px 0;
+}
+
+#buy-button, #submit-button {
+    background: linear-gradient(135deg, #5469d4 0%, #4053b8 100%);
+    color: white;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    width: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(84, 105, 212, 0.3);
+}
+
+#buy-button:hover, #submit-button:hover {
+    background: linear-gradient(135deg, #4053b8 0%, #3442a0 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(84, 105, 212, 0.4);
+}
+
+#buy-button:disabled, #submit-button:disabled {
+    background: #aab7c4;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.order-items {
+    margin: 20px 0;
+}
+
+.item {
+    border: 1px solid #e6ebf1;
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: #fafbfc;
+    transition: all 0.3s ease;
+}
+
+.item:hover {
+    border-color: #d0d7de;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.pricing-details {
+    background-color: #f6f9fc;
+    padding: 20px;
+    border-radius: 12px;
+    margin: 20px 0;
+}
+
+.discount-info {
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.tax-info {
+    padding: 12px;
+    margin: 10px 0;
+    border-radius: 10px;
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeaa7;
+}
+
+.total {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 20px 0;
+    color: #32325d;
+}
+
+/* Breakdown стили */
+.breakdown {
+    margin-top: 15px;
+}
+
+.breakdown-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #e6ebf1;
+}
+
+.breakdown-row:last-child {
+    border-bottom: none;
+}
+
+.breakdown-row.discount {
+    color: #28a745;
+    font-weight: 500;
+}
+
+.breakdown-row.tax {
+    color: #856404;
+    font-weight: 500;
+}
+
+.breakdown-row.total {
+    margin-top: 10px;
+    padding-top: 15px;
+    border-top: 2px solid #32325d;
+    font-size: 1.2em;
+    color: #32325d;
+}

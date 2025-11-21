@@ -1,0 +1,92 @@
+{% load static %}
+{% load payment_filters %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина</title>
+    <link rel="stylesheet" href="{% static 'payments/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'payments/css/cart.css' %}">
+    <style>
+        body {
+            max-width: 900px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🛒 Корзина ({{ cart_count }} товар{{ cart_count|pluralize:"ов" }})</h1>
+        <a href="{% url 'payments:index' %}" class="back-link">← Продолжить покупки</a>
+    </div>
+
+    {% if error %}
+        <div class="cart-empty">
+            <p style="color: #fa755a;">{{ error }}</p>
+            <p>Корзина была очищена.</p>
+            <a href="{% url 'payments:index' %}" class="btn">Перейти к покупкам</a>
+        </div>
+    {% elif cart_items %}
+        {% for cart_item in cart_items %}
+        <div class="cart-item">
+            <div class="item-info">
+                <h3>{{ cart_item.item.name }}</h3>
+                <p>{{ cart_item.item.description }}</p>
+                <div class="quantity-controls">
+                    <a href="{% url 'payments:update_cart_quantity' cart_item.item.id 'decrease' %}" class="qty-btn">−</a>
+                    <span class="qty-display">{{ cart_item.quantity }}</span>
+                    <a href="{% url 'payments:update_cart_quantity' cart_item.item.id 'increase' %}" class="qty-btn">+</a>
+                </div>
+            </div>
+            <div class="item-price">
+                {% if currency == 'usd' %}${% else %}€{% endif %}{{ cart_item.subtotal|cents_to_currency }}
+                {% if cart_item.converted %}
+                <div style="font-size: 12px; color: #8898aa; margin-top: 4px;">
+                    (конвертировано из {% if cart_item.original_currency == 'usd' %}${% else %}€{% endif %})
+                </div>
+                {% endif %}
+            </div>
+            <a href="{% url 'payments:remove_from_cart' cart_item.item.id %}" class="remove-btn">Удалить</a>
+        </div>
+        {% endfor %}
+
+        <div class="cart-summary">
+            <div class="summary-row">
+                <span>Товаров в корзине:</span>
+                <span>{{ cart_count }}</span>
+            </div>
+
+            <div class="summary-row" style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e6ebf1;">
+                <span><strong>Валюта оплаты:</strong></span>
+                <div style="display: flex; gap: 10px;">
+                    <a href="{% url 'payments:change_currency' 'usd' %}"
+                       class="currency-btn {% if currency == 'usd' %}active{% endif %}"
+                       style="padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.2s; {% if currency == 'usd' %}background: #5469d4; color: white;{% else %}background: #f6f9fc; color: #525f7f;{% endif %}">
+                        💵 USD
+                    </a>
+                    <a href="{% url 'payments:change_currency' 'eur' %}"
+                       class="currency-btn {% if currency == 'eur' %}active{% endif %}"
+                       style="padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.2s; {% if currency == 'eur' %}background: #5469d4; color: white;{% else %}background: #f6f9fc; color: #525f7f;{% endif %}">
+                        💶 EUR
+                    </a>
+                </div>
+            </div>
+
+            <div class="summary-total">
+                <span>Итого:</span>
+                <span>
+                    {% if currency == 'usd' %}${% else %}€{% endif %}{{ total|cents_to_currency }}
+                </span>
+            </div>
+            <a href="{% url 'payments:checkout_cart' %}" class="checkout-btn">
+                Оформить заказ
+            </a>
+        </div>
+    {% else %}
+        <div class="cart-empty">
+            <p>Ваша корзина пуста</p>
+            <a href="{% url 'payments:index' %}" class="btn">Перейти к покупкам</a>
+        </div>
+    {% endif %}
+</body>
+</html>

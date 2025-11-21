@@ -37,7 +37,6 @@ class Item(models.Model):
 class Discount(models.Model):
     """Модель скидки для применения к заказам."""
 
-    name = models.CharField(max_length=255, help_text="Название скидки")
     percent = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -46,18 +45,17 @@ class Discount(models.Model):
 
     def __str__(self) -> str:
         """Строковое представление скидки."""
-        return f"{self.name} - {self.percent}%"
+        return f"Скидка {self.percent}%"
 
     class Meta:
         verbose_name = "Скидка"
         verbose_name_plural = "Скидки"
-        ordering = ["name"]
+        ordering = ["percent"]
 
 
 class Tax(models.Model):
     """Модель налога для применения к заказам."""
 
-    name = models.CharField(max_length=255, help_text="Название налога")
     percent = models.DecimalField(
         max_digits=5,
         decimal_places=2,
@@ -66,12 +64,31 @@ class Tax(models.Model):
 
     def __str__(self) -> str:
         """Строковое представление налога."""
-        return f"{self.name} - {self.percent}%"
+        return f"Налог {self.percent}%"
 
     class Meta:
         verbose_name = "Налог"
         verbose_name_plural = "Налоги"
-        ordering = ["name"]
+        ordering = ["percent"]
+
+
+class OrderItem(models.Model):
+    """Промежуточная модель для связи Order и Item с количеством."""
+
+    order = models.ForeignKey(
+        "Order",
+        on_delete=models.CASCADE,
+        related_name="order_items",
+    )
+    item = models.ForeignKey(
+        Item,
+        on_delete=models.CASCADE,
+    )
+    quantity = models.PositiveIntegerField(default=1)
+
+    class Meta:
+        verbose_name = "Товар в заказе"
+        verbose_name_plural = "Товары в заказе"
 
 
 class Order(models.Model):
@@ -79,9 +96,16 @@ class Order(models.Model):
 
     items = models.ManyToManyField(
         Item,
+        through="OrderItem",
         related_name="orders",
-        help_text="Товары в заказе"
-        )
+        help_text="Товары в заказе",
+    )
+    payment_currency = models.CharField(
+        max_length=3,
+        choices=[("usd", "USD"), ("eur", "EUR")],
+        default="usd",
+        help_text="Валюта оплаты",
+    )
     discount = models.ForeignKey(
         Discount,
         on_delete=models.SET_NULL,
@@ -98,30 +122,75 @@ class Order(models.Model):
         related_name="orders",
         help_text="Налог на заказ",
     )
-    created_at = models.DateTimeField(auto_now_add=True, help_text="Дата создания заказа")
+    created_at = models.DateTimeField(
+        auto_now_add=True, help_text="Дата создания заказа"
+    )
 
     def __str__(self) -> str:
         """Строковое представление заказа."""
         return f"Заказ #{self.id} от {self.created_at.strftime('%d.%m.%Y')}"
 
+    def get_subtotal(self) -> int:
+        """Возвращает сумму товаров без скидок и налогов."""
+        from payments.views import convert_to_base_currency
+
+        subtotal = 0
+        for order_item in self.order_items.all():
+            converted_price = convert_to_base_currency(
+                order_item.item.price,
+                order_item.item.currency,
+                self.payment_currency
+            )
+            subtotal += converted_price * order_item.quantity
+        return int(subtotal)
+
+    def get_discount_amount(self) -> int:
+        """Возвращает сумму скидки в центах."""
+        if not self.discount:
+            return 0
+        subtotal = self.get_subtotal()
+        return int(subtotal * (self.discount.percent / 100))
+
+    def get_tax_amount(self) -> int:
+        """Возвращает сумму налога в центах."""
+        if not self.tax:
+            return 0
+        subtotal_after_discount = (
+            self.get_subtotal() - self.get_discount_amount()
+        )
+        return int(subtotal_after_discount * (self.tax.percent / 100))
+
     def get_total_price(self) -> int:
-        """Возвращает общую стоимость заказа в центах с учетом скидок и налогов."""
-        total = sum(item.price for item in self.items.all())
-
-        if self.discount:
-            discount_amount = total * (self.discount.percent / 100)
-            total -= int(discount_amount)
-
-        if self.tax:
-            tax_amount = total * (self.tax.percent / 100)
-            total += int(tax_amount)
-
-        return int(total)
+        """Возвращает общую стоимость заказа в центах."""
+        subtotal = self.get_subtotal()
+        discount = self.get_discount_amount()
+        tax = self.get_tax_amount()
+        return subtotal - discount + tax
 
     def get_currency(self) -> str:
-        """Возвращает валюту заказа (берется из первого товара)."""
-        first_item = self.items.first()
-        return first_item.currency if first_item else "usd"
+        """Возвращает валюту оплаты заказа."""
+        return self.payment_currency
+
+    def get_display_subtotal(self) -> str:
+        """Возвращает сумму товаров с валютой для отображения."""
+        subtotal = self.get_subtotal()
+        currency = self.get_currency()
+        symbol = "$" if currency == "usd" else "€"
+        return f"{symbol}{subtotal / 100:.2f}"
+
+    def get_display_discount(self) -> str:
+        """Возвращает сумму скидки с валютой для отображения."""
+        discount = self.get_discount_amount()
+        currency = self.get_currency()
+        symbol = "$" if currency == "usd" else "€"
+        return f"{symbol}{discount / 100:.2f}"
+
+    def get_display_tax(self) -> str:
+        """Возвращает сумму налога с валютой для отображения."""
+        tax = self.get_tax_amount()
+        currency = self.get_currency()
+        symbol = "$" if currency == "usd" else "€"
+        return f"{symbol}{tax / 100:.2f}"
 
     def get_display_total(self) -> str:
         """Возвращает общую стоимость с валютой для отображения."""

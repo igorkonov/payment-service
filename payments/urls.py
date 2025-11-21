@@ -5,21 +5,30 @@ from . import views
 app_name = "payments"
 
 urlpatterns = [
-    # Главная страница
     path("", views.index, name="index"),
-    # Payment Intent URLs
-    path("item/<int:id>/", views.item_detail, name="item_detail"),
-    path(
-        "buy/<int:id>/",
-        views.create_checkout_session,
-        name="create_checkout_session",
-    ),
     path("order/<int:id>/", views.order_detail, name="order_detail"),
     path(
         "buy-order/<int:id>/",
         views.create_order_checkout_session,
         name="create_order_checkout_session",
     ),
-    # Success page
+    path("cart/", views.view_cart, name="view_cart"),
+    path("cart/add/<int:id>/", views.add_to_cart, name="add_to_cart"),
+    path(
+        "cart/remove/<int:id>/",
+        views.remove_from_cart,
+        name="remove_from_cart"),
+    path(
+        "cart/update/<int:id>/<str:action>/",
+        views.update_cart_quantity,
+        name="update_cart_quantity",
+    ),
+    path("buy-now/<int:id>/", views.buy_now, name="buy_now"),
+    path(
+        "cart/currency/<str:currency>/",
+        views.change_currency,
+        name="change_currency",
+    ),
+    path("cart/checkout/", views.create_order_from_cart, name="checkout_cart"),
     path("success/", views.success, name="success"),
 ]
