@@ -1,4 +1,5 @@
 """Кастомные фильтры для шаблонов."""
+
 from django import template
 
 register = template.Library()

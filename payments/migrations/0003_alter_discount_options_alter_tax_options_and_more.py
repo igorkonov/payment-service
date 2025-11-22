@@ -4,26 +4,33 @@ from django.db import migrations
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('payments', '0002_discount_tax_item_currency_order'),
+        ("payments", "0002_discount_tax_item_currency_order"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='discount',
-            options={'ordering': ['percent'], 'verbose_name': 'Скидка', 'verbose_name_plural': 'Скидки'},
+            name="discount",
+            options={
+                "ordering": ["percent"],
+                "verbose_name": "Скидка",
+                "verbose_name_plural": "Скидки",
+            },
         ),
         migrations.AlterModelOptions(
-            name='tax',
-            options={'ordering': ['percent'], 'verbose_name': 'Налог', 'verbose_name_plural': 'Налоги'},
+            name="tax",
+            options={
+                "ordering": ["percent"],
+                "verbose_name": "Налог",
+                "verbose_name_plural": "Налоги",
+            },
         ),
         migrations.RemoveField(
-            model_name='discount',
-            name='name',
+            model_name="discount",
+            name="name",
         ),
         migrations.RemoveField(
-            model_name='tax',
-            name='name',
+            model_name="tax",
+            name="name",
         ),
     ]

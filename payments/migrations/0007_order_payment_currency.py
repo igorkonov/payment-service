@@ -4,15 +4,19 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('payments', '0006_alter_order_items'),
+        ("payments", "0006_alter_order_items"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='order',
-            name='payment_currency',
-            field=models.CharField(choices=[('usd', 'USD'), ('eur', 'EUR')], default='usd', help_text='Валюта оплаты', max_length=3),
+            model_name="order",
+            name="payment_currency",
+            field=models.CharField(
+                choices=[("usd", "USD"), ("eur", "EUR")],
+                default="usd",
+                help_text="Валюта оплаты",
+                max_length=3,
+            ),
         ),
     ]

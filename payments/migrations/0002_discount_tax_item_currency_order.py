@@ -5,56 +5,130 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('payments', '0001_initial'),
+        ("payments", "0001_initial"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Discount',
+            name="Discount",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(help_text='Название скидки', max_length=255)),
-                ('percent', models.DecimalField(decimal_places=2, help_text='Процент скидки (например, 10.00)', max_digits=5)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(help_text="Название скидки", max_length=255)),
+                (
+                    "percent",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Процент скидки (например, 10.00)",
+                        max_digits=5,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Скидка',
-                'verbose_name_plural': 'Скидки',
-                'ordering': ['name'],
+                "verbose_name": "Скидка",
+                "verbose_name_plural": "Скидки",
+                "ordering": ["name"],
             },
         ),
         migrations.CreateModel(
-            name='Tax',
+            name="Tax",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(help_text='Название налога', max_length=255)),
-                ('percent', models.DecimalField(decimal_places=2, help_text='Процент налога (например, 20.00)', max_digits=5)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(help_text="Название налога", max_length=255)),
+                (
+                    "percent",
+                    models.DecimalField(
+                        decimal_places=2,
+                        help_text="Процент налога (например, 20.00)",
+                        max_digits=5,
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Налог',
-                'verbose_name_plural': 'Налоги',
-                'ordering': ['name'],
+                "verbose_name": "Налог",
+                "verbose_name_plural": "Налоги",
+                "ordering": ["name"],
             },
         ),
         migrations.AddField(
-            model_name='item',
-            name='currency',
-            field=models.CharField(choices=[('usd', 'USD'), ('eur', 'EUR')], default='usd', help_text='Валюта товара', max_length=3),
+            model_name="item",
+            name="currency",
+            field=models.CharField(
+                choices=[("usd", "USD"), ("eur", "EUR")],
+                default="usd",
+                help_text="Валюта товара",
+                max_length=3,
+            ),
         ),
         migrations.CreateModel(
-            name='Order',
+            name="Order",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('created_at', models.DateTimeField(auto_now_add=True, help_text='Дата создания заказа')),
-                ('discount', models.ForeignKey(blank=True, help_text='Скидка на заказ', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='payments.discount')),
-                ('items', models.ManyToManyField(help_text='Товары в заказе', related_name='orders', to='payments.item')),
-                ('tax', models.ForeignKey(blank=True, help_text='Налог на заказ', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='orders', to='payments.tax')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "created_at",
+                    models.DateTimeField(
+                        auto_now_add=True, help_text="Дата создания заказа"
+                    ),
+                ),
+                (
+                    "discount",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Скидка на заказ",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="orders",
+                        to="payments.discount",
+                    ),
+                ),
+                (
+                    "items",
+                    models.ManyToManyField(
+                        help_text="Товары в заказе",
+                        related_name="orders",
+                        to="payments.item",
+                    ),
+                ),
+                (
+                    "tax",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Налог на заказ",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="orders",
+                        to="payments.tax",
+                    ),
+                ),
             ],
             options={
-                'verbose_name': 'Заказ',
-                'verbose_name_plural': 'Заказы',
-                'ordering': ['-created_at'],
+                "verbose_name": "Заказ",
+                "verbose_name_plural": "Заказы",
+                "ordering": ["-created_at"],
             },
         ),
     ]

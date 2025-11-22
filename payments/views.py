@@ -32,7 +32,8 @@ def order_detail(request: HttpRequest, id: int) -> HttpResponse:
 
 @csrf_exempt
 def create_order_checkout_session(
-    request: HttpRequest, id: int
+    request: HttpRequest,
+    id: int,  # noqa: ARG001
 ) -> JsonResponse:
     """Создает Stripe Payment Intent для покупки заказа."""
     order = get_object_or_404(Order, pk=id)
@@ -71,15 +72,11 @@ def create_order_checkout_session(
         description_parts = [f"Заказ #{order.id}"]
         if order.discount:
             discount_text = (
-                f"Скидка: {order.discount.percent}% "
-                f"(-{order.get_display_discount()})"
+                f"Скидка: {order.discount.percent}% (-{order.get_display_discount()})"
             )
             description_parts.append(discount_text)
         if order.tax:
-            tax_text = (
-                f"Налог: {order.tax.percent}% "
-                f"(+{order.get_display_tax()})"
-            )
+            tax_text = f"Налог: {order.tax.percent}% (+{order.get_display_tax()})"
             description_parts.append(tax_text)
         payment_intent_params["description"] = " | ".join(description_parts)
 
@@ -126,9 +123,7 @@ def success(request: HttpRequest) -> HttpResponse:
 EUR_TO_USD_RATE = 1.1
 
 
-def convert_to_base_currency(
-    price: int, currency: str, base_currency: str
-) -> int:
+def convert_to_base_currency(price: int, currency: str, base_currency: str) -> int:
     """Конвертирует цену в базовую валюту."""
     if currency == base_currency:
         return price
@@ -168,15 +163,13 @@ def view_cart(request: HttpRequest) -> HttpResponse:
 
     # Определяем базовую валюту (первый товар)
     base_currency = None
-    for item_id in cart.keys():
+    for item_id in cart:
         item = Item.objects.get(pk=int(item_id))
         base_currency = item.currency
         break
 
     # Используем выбранную валюту или базовую
-    display_currency = (
-        selected_currency if selected_currency else base_currency
-    )
+    display_currency = selected_currency if selected_currency else base_currency
 
     for item_id, data in cart.items():
         item = Item.objects.get(pk=int(item_id))
@@ -188,13 +181,15 @@ def view_cart(request: HttpRequest) -> HttpResponse:
         )
         subtotal = converted_price * quantity
 
-        cart_items.append({
-            "item": item,
-            "quantity": quantity,
-            "subtotal": subtotal,
-            "original_currency": item.currency,
-            "converted": item.currency != display_currency,
-        })
+        cart_items.append(
+            {
+                "item": item,
+                "quantity": quantity,
+                "subtotal": subtotal,
+                "original_currency": item.currency,
+                "converted": item.currency != display_currency,
+            }
+        )
         total += subtotal
 
     context: dict[str, Any] = {
@@ -235,9 +230,7 @@ def buy_now(request: HttpRequest, id: int) -> HttpResponse:
     return redirect("payments:view_cart")
 
 
-def update_cart_quantity(
-    request: HttpRequest, id: int, action: str
-) -> HttpResponse:
+def update_cart_quantity(request: HttpRequest, id: int, action: str) -> HttpResponse:
     """Изменяет количество товара в корзине."""
     cart = request.session.get("cart", {})
     item_id = str(id)
@@ -274,11 +267,7 @@ def create_order_from_cart(request: HttpRequest) -> HttpResponse:
         item = Item.objects.get(pk=int(item_id))
         quantity = data["quantity"]
 
-        OrderItem.objects.create(
-            order=order,
-            item=item,
-            quantity=quantity
-        )
+        OrderItem.objects.create(order=order, item=item, quantity=quantity)
 
     # Сохраняем ID заказа в сессии для очистки корзины после оплаты
     request.session["pending_order_id"] = order.id

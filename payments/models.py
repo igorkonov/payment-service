@@ -38,9 +38,7 @@ class Discount(models.Model):
     """Модель скидки для применения к заказам."""
 
     percent = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        help_text="Процент скидки (например, 10.00)"
+        max_digits=5, decimal_places=2, help_text="Процент скидки (например, 10.00)"
     )
 
     def __str__(self) -> str:
@@ -57,9 +55,7 @@ class Tax(models.Model):
     """Модель налога для применения к заказам."""
 
     percent = models.DecimalField(
-        max_digits=5,
-        decimal_places=2,
-        help_text="Процент налога (например, 20.00)"
+        max_digits=5, decimal_places=2, help_text="Процент налога (например, 20.00)"
     )
 
     def __str__(self) -> str:
@@ -137,9 +133,7 @@ class Order(models.Model):
         subtotal = 0
         for order_item in self.order_items.all():
             converted_price = convert_to_base_currency(
-                order_item.item.price,
-                order_item.item.currency,
-                self.payment_currency
+                order_item.item.price, order_item.item.currency, self.payment_currency
             )
             subtotal += converted_price * order_item.quantity
         return int(subtotal)
@@ -155,9 +149,7 @@ class Order(models.Model):
         """Возвращает сумму налога в центах."""
         if not self.tax:
             return 0
-        subtotal_after_discount = (
-            self.get_subtotal() - self.get_discount_amount()
-        )
+        subtotal_after_discount = self.get_subtotal() - self.get_discount_amount()
         return int(subtotal_after_discount * (self.tax.percent / 100))
 
     def get_total_price(self) -> int:

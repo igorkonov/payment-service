@@ -4,25 +4,31 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Item',
+            name="Item",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(help_text='Название товара', max_length=255)),
-                ('description', models.TextField(help_text='Описание товара')),
-                ('price', models.IntegerField(help_text='Цена в центах')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(help_text="Название товара", max_length=255)),
+                ("description", models.TextField(help_text="Описание товара")),
+                ("price", models.IntegerField(help_text="Цена в центах")),
             ],
             options={
-                'verbose_name': 'Товар',
-                'verbose_name_plural': 'Товары',
-                'ordering': ['name'],
+                "verbose_name": "Товар",
+                "verbose_name_plural": "Товары",
+                "ordering": ["name"],
             },
         ),
     ]

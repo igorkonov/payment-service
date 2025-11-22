@@ -18,6 +18,8 @@ ignore = [
 [lint.per-file-ignores]
 "__init__.py" = ["F401"]
 "*/migrations/*" = ["ARG001"]
+"*/tests/*" = ["ARG001", "ARG002"]
+"conftest.py" = ["ARG001"]
 
 [format]
 quote-style = "double"
