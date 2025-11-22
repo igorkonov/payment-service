@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Активируем виртуальное окружение
+source /app/.venv/bin/activate
+
 # Устанавливаем значения по умолчанию
 DB_HOST=${DB_HOST:-db}
 DB_PORT=${DB_PORT:-5432}
