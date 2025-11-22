@@ -21,7 +21,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Устанавливаем зависимости в виртуальное окружение
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen
 
 # Runtime stage
 FROM python:3.13-slim-bookworm
