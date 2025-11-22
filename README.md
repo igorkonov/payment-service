@@ -4,20 +4,32 @@
 
 ## Запуск
 
-Нужен Docker. Клонируете репо, копируете `.env.sample` в `.env`, вставляете свои ключи от Stripe и запускаете:
+### Development (Docker)
 
 ```bash
+cp .env.sample .env
+# Отредактируйте .env - добавьте ключи Stripe
 docker-compose up --build
 ```
 
-Потом миграции и суперюзер:
+Создайте суперпользователя:
 
 ```bash
-docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
 ```
 
-Всё, можно открывать http://localhost:8000
+Откройте http://localhost:8000
+
+### Production (Docker + nginx)
+
+```bash
+cp .env.sample .env
+# Настройте production переменные в .env
+docker-compose -f docker-compose.prod.yml up -d --build
+docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser
+```
+
+Подробнее в [DEPLOY.md](DEPLOY.md)
 
 ## Без Docker
 

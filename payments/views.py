@@ -32,8 +32,8 @@ def order_detail(request: HttpRequest, id: int) -> HttpResponse:
 
 @csrf_exempt
 def create_order_checkout_session(
-    request: HttpRequest,
-    id: int,  # noqa: ARG001
+    request: HttpRequest,  # noqa: ARG001
+    id: int,  # noqa: A002
 ) -> JsonResponse:
     """Создает Stripe Payment Intent для покупки заказа."""
     order = get_object_or_404(Order, pk=id)
