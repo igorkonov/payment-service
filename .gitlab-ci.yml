@@ -19,12 +19,17 @@ build:
     - echo "Registry ID ${YC_REGISTRY_ID}"
     - echo "Image tag ${IMAGE_TAG}"
     - mkdir -p /kaniko/.docker
-    - echo "$YC_SA_KEY" > /kaniko/key.json
+    - |
+      if [ -f "$YC_SA_KEY" ]; then
+        echo "Using YC_SA_KEY as file"
+        cp "$YC_SA_KEY" /kaniko/key.json
+      else
+        echo "Using YC_SA_KEY as variable"
+        echo "$YC_SA_KEY" > /kaniko/key.json
+      fi
     - echo "Key file size:" && wc -c /kaniko/key.json
-    - AUTH_STRING=$(echo -n "json_key:" && cat /kaniko/key.json | tr -d '\n' | tr -d ' ')
-    - echo "$AUTH_STRING" | base64 -w0 > /tmp/auth.txt
-    - printf '{"auths":{"cr.yandex":{"auth":"%s"}}}' "$(cat /tmp/auth.txt)" > /kaniko/.docker/config.json
-    - echo "Config created, auth length:" && cat /kaniko/.docker/config.json | jq -r '.auths."cr.yandex".auth' | wc -c
+    - AUTH_B64=$(echo -n "json_key:" && cat /kaniko/key.json | tr -d '\n' | tr -d ' ' | base64 -w0)
+    - printf '{"auths":{"cr.yandex":{"auth":"%s"}}}' "$AUTH_B64" > /kaniko/.docker/config.json
     - /kaniko/executor --context "${CI_PROJECT_DIR}" --dockerfile "${CI_PROJECT_DIR}/Dockerfile" --destination "${IMAGE_TAG}" --destination "${LATEST_TAG}" --cache=true --cache-ttl=24h
   only:
     - main
