@@ -64,7 +64,7 @@ deploy_production:
         cat > .env << 'ENVEOF'
       STRIPE_PUBLIC_KEY=$STRIPE_PUBLIC_KEY
       STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
-      SECRET_KEY=$DJANGO_SECRET_KEY
+      SECRET_KEY="$SECRET_KEY"
       DEBUG=False
       ALLOWED_HOSTS=$YC_VM_IP,${YC_DOMAIN:-localhost}
       DB_NAME=$DB_NAME
