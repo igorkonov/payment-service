@@ -12,7 +12,7 @@ if [ -z "$1" ]; then
 fi
 
 VM_IP=$1
-VM_USER="yc-user"
+VM_USER="ubuntu"
 PROJECT_DIR="/opt/payment-service"
 
 echo "🚀 Начинаем настройку VM: $VM_IP"
@@ -29,6 +29,10 @@ if ! ssh -o ConnectTimeout=5 $VM_USER@$VM_IP "echo 'SSH OK'"; then
 fi
 
 echo "✅ SSH подключение установлено"
+
+# Создание директории проекта
+echo "� Созидание директории проекта..."
+ssh $VM_USER@$VM_IP "sudo mkdir -p $PROJECT_DIR && sudo chown $VM_USER:$VM_USER $PROJECT_DIR"
 
 # Копирование docker-compose.prod.yml
 echo "📦 Копирование docker-compose.prod.yml..."
