@@ -1,0 +1,128 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  DOCKER_DRIVER: overlay2
+  YC_REGISTRY: cr.yandex
+  IMAGE_TAG: ${YC_REGISTRY}/${YC_REGISTRY_ID}/${CI_PROJECT_NAME}:${CI_COMMIT_SHORT_SHA}
+  LATEST_TAG: ${YC_REGISTRY}/${YC_REGISTRY_ID}/${CI_PROJECT_NAME}:latest
+
+# Сборка Docker образа для Yandex Container Registry
+build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:debug
+    entrypoint: [""]
+  script:
+    - echo "Building Docker image for Yandex Cloud..."
+    - mkdir -p /kaniko/.docker
+    - echo "{\"auths\":{\"${YC_REGISTRY}\":{\"auth\":\"$(echo -n \"json_key:${YC_SA_KEY}\" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor
+      --context "${CI_PROJECT_DIR}"
+      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
+      --destination "${IMAGE_TAG}"
+      --destination "${LATEST_TAG}"
+      --cache=true
+      --cache-ttl=24h
+  only:
+    - main
+    - dev
+
+# Деплой на production сервер в Yandex Cloud
+deploy_production:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$YC_SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $YC_VM_IP >> ~/.ssh/known_hosts
+  script:
+    - echo "Deploying to Yandex Cloud production server..."
+    - |
+      ssh yc-user@$YC_VM_IP bash -s << EOF
+        set -e
+        cd /opt/payment-service
+
+        # Логин в Yandex Container Registry
+        echo '$YC_SA_KEY' | docker login cr.yandex -u json_key --password-stdin
+
+        # Обновление .env файла
+        cat > .env << 'ENVEOF'
+      STRIPE_PUBLIC_KEY=$STRIPE_PUBLIC_KEY
+      STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
+      STRIPE_WEBHOOK_SECRET=$STRIPE_WEBHOOK_SECRET
+      SECRET_KEY=$DJANGO_SECRET_KEY
+      DEBUG=False
+      ALLOWED_HOSTS=$YC_VM_IP,${YC_DOMAIN:-localhost}
+      DB_NAME=$DB_NAME
+      DB_USER=$DB_USER
+      DB_PASSWORD=$DB_PASSWORD
+      DB_HOST=db
+      DB_PORT=5432
+      ENVEOF
+
+        # Обновление docker-compose.prod.yml с правильным образом
+        export IMAGE_TAG='$IMAGE_TAG'
+        sed -i "s|image:.*|image: \$IMAGE_TAG|g" docker-compose.prod.yml
+
+        # Скачивание нового образа
+        docker pull '$IMAGE_TAG'
+
+        # Остановка и удаление старых контейнеров
+        docker compose -f docker-compose.prod.yml down
+
+        # Запуск новых контейнеров
+        docker compose -f docker-compose.prod.yml up -d
+
+        # Проверка статуса
+        docker compose -f docker-compose.prod.yml ps
+
+        # Очистка старых образов
+        docker image prune -af --filter "until=24h"
+      EOF
+    - echo "Deployment completed successfully!"
+  environment:
+    name: production
+    url: http://$YC_VM_IP
+  only:
+    - main
+  when: manual
+
+# Деплой на dev сервер в Yandex Cloud
+deploy_dev:
+  stage: deploy
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache openssh-client
+    - eval $(ssh-agent -s)
+    - echo "$YC_SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan -H $YC_DEV_VM_IP >> ~/.ssh/known_hosts
+  script:
+    - echo "Deploying to Yandex Cloud dev server..."
+    - |
+      ssh yc-user@$YC_DEV_VM_IP bash -s << EOF
+        set -e
+        cd /opt/payment-service
+
+        echo '$YC_SA_KEY' | docker login cr.yandex -u json_key --password-stdin
+
+        # Обновление docker-compose.prod.yml с правильным образом
+        export IMAGE_TAG='$IMAGE_TAG'
+        sed -i "s|image:.*|image: \$IMAGE_TAG|g" docker-compose.prod.yml
+
+        docker pull '$IMAGE_TAG'
+        docker compose -f docker-compose.prod.yml down
+        docker compose -f docker-compose.prod.yml up -d
+        docker compose -f docker-compose.prod.yml ps
+      EOF
+  environment:
+    name: development
+    url: http://$YC_DEV_VM_IP
+  only:
+    - dev

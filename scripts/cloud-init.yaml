@@ -1,0 +1,90 @@
+#cloud-config
+
+# Скрипт автоматической настройки VM при создании
+# Используется с параметром --metadata-from-file user-data=scripts/cloud-init.yaml
+
+users:
+  - name: yc-user
+    groups: sudo, docker
+    shell: /bin/bash
+    sudo: ['ALL=(ALL) NOPASSWD:ALL']
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - apt-transport-https
+  - ca-certificates
+  - curl
+  - gnupg
+  - lsb-release
+  - git
+  - htop
+  - vim
+  - jq
+
+runcmd:
+  # Установка Docker
+  - curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+  - sh /tmp/get-docker.sh
+  - usermod -aG docker yc-user
+  - systemctl enable docker
+  - systemctl start docker
+
+  # Установка Docker Compose
+  - apt-get install -y docker-compose-plugin
+
+  # Создание директории для проекта
+  - mkdir -p /opt/payment-service
+  - chown yc-user:yc-user /opt/payment-service
+
+  # Настройка firewall (если используется ufw)
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw allow 8080/tcp
+  - ufw allow 8443/tcp
+
+  # Настройка swap (опционально, для VM с малым объемом RAM)
+  - fallocate -l 2G /swapfile
+  - chmod 600 /swapfile
+  - mkswap /swapfile
+  - swapon /swapfile
+  - echo '/swapfile none swap sw 0 0' >> /etc/fstab
+
+  # Настройка логирования Docker
+  - |
+    cat > /etc/docker/daemon.json << 'EOF'
+    {
+      "log-driver": "json-file",
+      "log-opts": {
+        "max-size": "10m",
+        "max-file": "3"
+      }
+    }
+    EOF
+  - systemctl restart docker
+
+write_files:
+  - path: /etc/systemd/system/docker-cleanup.service
+    content: |
+      [Unit]
+      Description=Docker Cleanup Service
+
+      [Service]
+      Type=oneshot
+      ExecStart=/usr/bin/docker system prune -af --filter "until=72h"
+
+  - path: /etc/systemd/system/docker-cleanup.timer
+    content: |
+      [Unit]
+      Description=Docker Cleanup Timer
+
+      [Timer]
+      OnCalendar=daily
+      Persistent=true
+
+      [Install]
+      WantedBy=timers.target
+
+final_message: "VM setup completed successfully! Uptime: $UPTIME"

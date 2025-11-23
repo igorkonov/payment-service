@@ -35,9 +35,11 @@ services:
       - SETUID
 
   web:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    # Для локальной сборки используйте build, для CI/CD - image
+    # build:
+    #   context: .
+    #   dockerfile: Dockerfile
+    image: ${IMAGE_TAG:-payment-service:latest}
     volumes:
       - static_volume:/app/staticfiles
       - media_volume:/app/mediafiles

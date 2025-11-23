@@ -29,8 +29,6 @@ docker-compose -f docker-compose.prod.yml up -d --build
 docker-compose -f docker-compose.prod.yml exec web python manage.py createsuperuser
 ```
 
-Подробнее в [DEPLOY.md](DEPLOY.md)
-
 ## Без Docker
 
 Если Docker не нужен, используйте [uv](https://docs.astral.sh/uv/):
@@ -127,4 +125,8 @@ payments/          # основное приложение
   tests/           # тесты
 stripe_payment/    # настройки Django
 templates/         # HTML шаблоны
+scripts/           # скрипты для деплоя
+  yc-setup.sh      # автоматическая настройка Yandex Cloud
+  setup-vm.sh      # настройка VM
+  cloud-init.yaml  # конфигурация VM при создании
 ```

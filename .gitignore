@@ -213,3 +213,8 @@ __marimo__/
 docker/postgres/certs/*.key
 docker/postgres/certs/*.crt
 docker/postgres/certs/*.pem
+
+# Yandex Cloud credentials
+yc-sa-key.json
+*.json.backup
+.ssh/yc_*
