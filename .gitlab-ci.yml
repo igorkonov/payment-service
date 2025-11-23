@@ -19,17 +19,10 @@ build:
     - echo "Registry ID ${YC_REGISTRY_ID}"
     - echo "Image tag ${IMAGE_TAG}"
     - mkdir -p /kaniko/.docker
-    - echo "${YC_SA_KEY}" > /kaniko/key.json
-    - |
-      cat > /kaniko/.docker/config.json <<EOF
-      {
-        "auths": {
-          "${YC_REGISTRY}": {
-            "auth": "$(echo -n "json_key:${YC_SA_KEY}" | base64 -w0)"
-          }
-        }
-      }
-      EOF
+    - printf '%s' "${YC_SA_KEY}" > /kaniko/key.json
+    - AUTH_STRING=$(printf "json_key:%s" "${YC_SA_KEY}" | base64 -w0)
+    - printf '{"auths":{"cr.yandex":{"auth":"%s"}}}' "${AUTH_STRING}" > /kaniko/.docker/config.json
+    - cat /kaniko/.docker/config.json
     - /kaniko/executor --context "${CI_PROJECT_DIR}" --dockerfile "${CI_PROJECT_DIR}/Dockerfile" --destination "${IMAGE_TAG}" --destination "${LATEST_TAG}" --cache=true --cache-ttl=24h
   only:
     - main
