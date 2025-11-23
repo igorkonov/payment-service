@@ -11,26 +11,22 @@ variables:
 # Сборка Docker образа для Yandex Container Registry
 build:
   stage: build
-  image:
-    name: gcr.io/kaniko-project/executor:debug
-    entrypoint: [""]
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+  before_script:
+    - apk add --no-cache jq
   script:
     - echo "Building Docker image for Yandex Cloud..."
     - echo "Registry ID ${YC_REGISTRY_ID}"
     - echo "Image tag ${IMAGE_TAG}"
-    - mkdir -p /kaniko/.docker
-    - |
-      if [ -f "$YC_SA_KEY" ]; then
-        echo "Using YC_SA_KEY as file"
-        cp "$YC_SA_KEY" /kaniko/key.json
-      else
-        echo "Using YC_SA_KEY as variable"
-        echo "$YC_SA_KEY" > /kaniko/key.json
-      fi
-    - echo "Key file size:" && wc -c /kaniko/key.json
-    - AUTH_B64=$(echo -n "json_key:" && cat /kaniko/key.json | tr -d '\n' | tr -d ' ' | base64 -w0)
-    - printf '{"auths":{"cr.yandex":{"auth":"%s"}}}' "$AUTH_B64" > /kaniko/.docker/config.json
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" --dockerfile "${CI_PROJECT_DIR}/Dockerfile" --destination "${IMAGE_TAG}" --destination "${LATEST_TAG}" --cache=true --cache-ttl=24h
+    - echo "$YC_SA_KEY" > key.json
+    - cat key.json | docker login cr.yandex -u json_key --password-stdin
+    - docker build -t "${IMAGE_TAG}" -t "${LATEST_TAG}" .
+    - docker push "${IMAGE_TAG}"
+    - docker push "${LATEST_TAG}"
   only:
     - main
     - dev
