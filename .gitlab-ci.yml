@@ -53,7 +53,7 @@ deploy_production:
   script:
     - echo "Deploying to Yandex Cloud production server..."
     - |
-      ssh yc-user@$YC_VM_IP bash -s << EOF
+      ssh ubuntu@$YC_VM_IP bash -s << EOF
         set -e
         cd /opt/payment-service
 
@@ -116,7 +116,7 @@ deploy_dev:
   script:
     - echo "Deploying to Yandex Cloud dev server..."
     - |
-      ssh yc-user@$YC_DEV_VM_IP bash -s << EOF
+      ssh ubuntu@$YC_DEV_VM_IP bash -s << EOF
         set -e
         cd /opt/payment-service
 
