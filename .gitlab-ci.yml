@@ -52,6 +52,8 @@ deploy_production:
     - ssh-keyscan -H $YC_VM_IP >> ~/.ssh/known_hosts
   script:
     - echo "Deploying to Yandex Cloud production server..."
+    # Копируем правильный docker-compose.prod.yml на сервер
+    - scp docker-compose.prod.yml ubuntu@$YC_VM_IP:/opt/payment-service/
     - |
       ssh ubuntu@$YC_VM_IP bash -s << EOF
         set -e
@@ -74,13 +76,9 @@ deploy_production:
       DB_PORT=5432
       ENVEOF
 
-        # Обновление кода из репозитория
-        git fetch origin main
-        git checkout origin/main -- docker-compose.prod.yml
-
         # Обновление docker-compose.prod.yml с правильным образом (только web сервис)
         export IMAGE_TAG='$IMAGE_TAG'
-        sed -i "s|image: \${IMAGE_TAG:-payment-service:latest}|image: \$IMAGE_TAG|" docker-compose.prod.yml
+        sed -i "s|image: \\\${IMAGE_TAG:-payment-service:latest}|image: \$IMAGE_TAG|" docker-compose.prod.yml
 
         # Скачивание нового образа
         docker pull '$IMAGE_TAG'
@@ -125,13 +123,9 @@ deploy_dev:
 
         echo '$YC_SA_KEY' | docker login cr.yandex -u json_key --password-stdin
 
-        # Обновление кода из репозитория
-        git fetch origin dev
-        git checkout origin/dev -- docker-compose.prod.yml
-
         # Обновление docker-compose.prod.yml с правильным образом (только web сервис)
         export IMAGE_TAG='$IMAGE_TAG'
-        sed -i "s|image: \${IMAGE_TAG:-payment-service:latest}|image: \$IMAGE_TAG|" docker-compose.prod.yml
+        sed -i "s|image: \\\${IMAGE_TAG:-payment-service:latest}|image: \$IMAGE_TAG|" docker-compose.prod.yml
 
         docker pull '$IMAGE_TAG'
         docker compose -f docker-compose.prod.yml down
