@@ -17,8 +17,8 @@ build:
   script:
     - echo "Building Docker image for Yandex Cloud..."
     - mkdir -p /kaniko/.docker
-    - echo "${YC_SA_KEY}" > /tmp/key.json
-    - echo "{\"auths\":{\"${YC_REGISTRY}\":{\"auth\":\"$(echo -n "json_key:$(cat /tmp/key.json)" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - echo "${YC_SA_KEY}" > /kaniko/key.json
+    - echo "{\"auths\":{\"${YC_REGISTRY}\":{\"auth\":\"$(echo -n "json_key:$(cat /kaniko/key.json)" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
     - /kaniko/executor
       --context "${CI_PROJECT_DIR}"
       --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
