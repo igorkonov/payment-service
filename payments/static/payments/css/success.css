@@ -1,0 +1,35 @@
+/* Стили для страницы успеха */
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+.container {
+    background: white;
+    padding: 40px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    max-width: 600px;
+}
+
+.success-icon {
+    font-size: 64px;
+    margin-bottom: 20px;
+}
+
+p {
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 10px 0;
+}
+
+.contact {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid #e6ebf1;
+    font-size: 14px;
+    color: #8898aa;
+}

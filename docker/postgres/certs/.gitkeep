@@ -1,0 +1,2 @@
+# Директория для SSL сертификатов PostgreSQL
+# Запустите ./docker/postgres/generate-ssl-certs.sh для создания сертификатов

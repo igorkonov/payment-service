@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Service - Главная</title>
+    <link rel="stylesheet" href="{% static 'payments/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'payments/css/index.css' %}">
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>🛍️ Payment Service</h1>
+            <p class="subtitle">Демонстрация интеграции с Stripe API</p>
+        </div>
+        <a href="{% url 'payments:view_cart' %}" style="text-decoration: none; color: #5469d4; font-size: 24px; position: relative;">
+            🛒
+            {% if request.session.cart %}
+            <span style="position: absolute; top: -8px; right: -8px; background: #fa755a; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: bold;">
+                {{ request.session.cart|length }}
+            </span>
+            {% endif %}
+        </a>
+    </div>
+
+    <div class="section-title">
+        <h2>Товары</h2>
+    </div>
+
+    <div class="items-grid">
+        {% for item in items %}
+        <div class="item-card">
+            <h3>{{ item.name }}</h3>
+            <p>{{ item.description }}</p>
+            <div class="price">{{ item.get_display_price }}</div>
+
+            <div class="buttons">
+                <a href="{% url 'payments:add_to_cart' item.id %}" class="btn btn-secondary" style="flex: 1;">
+                    В корзину
+                </a>
+                <a href="{% url 'payments:buy_now' item.id %}" class="btn btn-primary" style="flex: 1;">
+                    Купить сейчас
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <p>Товары не найдены. Добавьте товары через <a href="/admin/">админ-панель</a>.</p>
+        {% endfor %}
+    </div>
+
+
+    {% if user.is_authenticated and user.is_staff %}
+    <div class="admin-link">
+        <a href="/admin/">→ Перейти в админ-панель</a>
+    </div>
+    {% endif %}
+</body>
+</html>

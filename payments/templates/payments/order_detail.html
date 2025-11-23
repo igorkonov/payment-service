@@ -1,0 +1,118 @@
+{% load static %}
+{% load payment_filters %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Заказ #{{ order.id }}</title>
+    <script src="https://js.stripe.com/v3/"></script>
+    <link rel="stylesheet" href="{% static 'payments/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'payments/css/payment.css' %}">
+</head>
+<body>
+    <h1>Заказ #{{ order.id }}</h1>
+    <p>Дата создания: {{ order.created_at|date:"d.m.Y H:i" }}</p>
+
+    <div class="order-items">
+        <h2>Товары:</h2>
+        {% for order_item in order.order_items.all %}
+        <div class="item">
+            <h3>{{ order_item.item.name }} × {{ order_item.quantity }}</h3>
+            <p>{{ order_item.item.description }}</p>
+            <p>Оригинальная цена: {{ order_item.item.get_display_price }}</p>
+            {% if order_item.item.currency != order.payment_currency %}
+            <p style="color: #8898aa; font-size: 14px;">
+                (конвертировано в {% if order.payment_currency == 'usd' %}USD{% else %}EUR{% endif %})
+            </p>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="pricing-details">
+        <div style="margin-bottom: 15px;">
+            <strong>Валюта оплаты:</strong>
+            {% if order.payment_currency == 'usd' %}💵 USD{% else %}💶 EUR{% endif %}
+        </div>
+
+        <div class="breakdown">
+            <div class="breakdown-row">
+                <span>Сумма товаров:</span>
+                <span>{{ order.get_display_subtotal }}</span>
+            </div>
+
+            {% if order.discount %}
+            <div class="breakdown-row discount">
+                <span>� Скидк/а ({{ order.discount.percent }}%):</span>
+                <span>-{{ order.get_display_discount }}</span>
+            </div>
+            {% endif %}
+
+            {% if order.tax %}
+            <div class="breakdown-row tax">
+                <span>📋 Налог ({{ order.tax.percent }}%):</span>
+                <span>+{{ order.get_display_tax }}</span>
+            </div>
+            {% endif %}
+
+            <div class="breakdown-row total">
+                <strong>Итого к оплате:</strong>
+                <strong>{{ order.get_display_total }}</strong>
+            </div>
+        </div>
+
+
+    <form id="payment-form">
+        <div id="card-element"></div>
+        <div id="card-errors"></div>
+        <button id="buy-button" type="submit">Оплатить заказ</button>
+    </form>
+
+    <script type="text/javascript">
+        var stripe = Stripe('{{ stripe_public_key }}');
+        var elements = stripe.elements();
+        var cardElement = elements.create('card');
+        cardElement.mount('#card-element');
+
+        cardElement.on('change', function(event) {
+            var displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+        var form = document.getElementById('payment-form');
+        var buyButton = document.getElementById('buy-button');
+
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            buyButton.disabled = true;
+
+            fetch('/buy-order/{{ order.id }}/', {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                return stripe.confirmCardPayment(data.clientSecret, {
+                    payment_method: {
+                        card: cardElement
+                    }
+                });
+            })
+            .then(result => {
+                if (result.error) {
+                    document.getElementById('card-errors').textContent = result.error.message;
+                    buyButton.disabled = false;
+                } else if (result.paymentIntent.status === 'succeeded') {
+                    window.location.href = '/success/';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                buyButton.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>
