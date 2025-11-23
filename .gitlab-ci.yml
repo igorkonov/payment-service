@@ -16,6 +16,8 @@ build:
     entrypoint: [""]
   script:
     - echo "Building Docker image for Yandex Cloud..."
+    - echo "Registry ID: ${YC_REGISTRY_ID}"
+    - echo "Image tag: ${IMAGE_TAG}"
     - mkdir -p /kaniko/.docker
     - echo "${YC_SA_KEY}" > /kaniko/key.json
     - echo "{\"auths\":{\"${YC_REGISTRY}\":{\"auth\":\"$(echo -n "json_key:$(cat /kaniko/key.json)" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
