@@ -64,7 +64,7 @@ deploy_production:
         cat > .env << 'ENVEOF'
       STRIPE_PUBLIC_KEY=$STRIPE_PUBLIC_KEY
       STRIPE_SECRET_KEY=$STRIPE_SECRET_KEY
-      SECRET_KEY="$SECRET_KEY"
+      SECRET_KEY=$SECRET_KEY
       DEBUG=False
       ALLOWED_HOSTS=$YC_VM_IP,${YC_DOMAIN:-localhost}
       DB_NAME=$DB_NAME
@@ -74,9 +74,13 @@ deploy_production:
       DB_PORT=5432
       ENVEOF
 
+        # Обновление кода из репозитория
+        git fetch origin main
+        git checkout origin/main -- docker-compose.prod.yml
+
         # Обновление docker-compose.prod.yml с правильным образом (только web сервис)
         export IMAGE_TAG='$IMAGE_TAG'
-        sed -i "/^  web:/,/^  [a-z]/ s|image:.*payment-service.*|image: \$IMAGE_TAG|" docker-compose.prod.yml
+        sed -i "s|image: \${IMAGE_TAG:-payment-service:latest}|image: \$IMAGE_TAG|" docker-compose.prod.yml
 
         # Скачивание нового образа
         docker pull '$IMAGE_TAG'
@@ -121,9 +125,13 @@ deploy_dev:
 
         echo '$YC_SA_KEY' | docker login cr.yandex -u json_key --password-stdin
 
+        # Обновление кода из репозитория
+        git fetch origin dev
+        git checkout origin/dev -- docker-compose.prod.yml
+
         # Обновление docker-compose.prod.yml с правильным образом (только web сервис)
         export IMAGE_TAG='$IMAGE_TAG'
-        sed -i "/^  web:/,/^  [a-z]/ s|image:.*payment-service.*|image: \$IMAGE_TAG|" docker-compose.prod.yml
+        sed -i "s|image: \${IMAGE_TAG:-payment-service:latest}|image: \$IMAGE_TAG|" docker-compose.prod.yml
 
         docker pull '$IMAGE_TAG'
         docker compose -f docker-compose.prod.yml down
