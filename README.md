@@ -64,6 +64,8 @@ DB_PORT=5433
 
 ![Главная страница](screenshots/home.png)
 ![Корзина](screenshots/cart.png)
+![Заказ](screenshots/order.png)
+![Успешная оплата](screenshots/success.png)
 ![Админка](screenshots/admin.png)
 
 ## API
