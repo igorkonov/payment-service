@@ -73,6 +73,13 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
+    # CSRF trusted origins for non-standard ports
+    CSRF_TRUSTED_ORIGINS = [
+        f"https://{host}:8443" for host in ALLOWED_HOSTS if host not in ["localhost", "127.0.0.1"]
+    ] + [
+        f"https://{host}" for host in ALLOWED_HOSTS if host not in ["localhost", "127.0.0.1"]
+    ]
+
 ROOT_URLCONF = "stripe_payment.urls"
 
 TEMPLATES = [
