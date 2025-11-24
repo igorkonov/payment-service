@@ -61,7 +61,9 @@ MIDDLEWARE = [
 
 # Security settings for production
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
+    # SSL redirect handled by nginx
+    SECURE_SSL_REDIRECT = False
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
